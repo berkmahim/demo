@@ -1,73 +1,110 @@
 package com.example.demo;
 
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.control.cell.PropertyValueFactory; // Bu satırı ekleyin
+import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.util.List;
 
 public class HelloController {
     @FXML
-    private Label welcomeText;
+    private TableView<Tarif> tarifTableView;
+    @FXML
+    private TableColumn<Tarif, String> tarifAdiColumn;
+    @FXML
+    private TableColumn<Tarif, String> kategoriColumn;
+    @FXML
+    private TableColumn<Tarif, String> hazirlamaSuresiColumn;
+    @FXML
+    private TableColumn<Tarif, Double> maliyetColumn;
 
     @FXML
-    private ListView<String> tarifListView; // ListView bileşeni
+    private TableView<Malzeme> ingredientsTable;
+    @FXML
+    private TableColumn<Malzeme, String> malzemeIngredientNameColumn;
+    @FXML
+    private TableColumn<Malzeme, Integer> malzemeQuantityColumn;
+    @FXML
+    private TableColumn<Malzeme, String> malzemeUnitColumn;
+    @FXML
+    private TableColumn<Malzeme, Double> malzemeUnitPriceColumn;
+    @FXML
+    private TableColumn<Malzeme, String> talimatlarIngredientsColumn; // Yeni talimatlar sütunu
 
     @FXML
-    private TableView<Tarif> tarifTableView; // TableView bileşeni
-
-    @FXML
-    private TableColumn<Tarif, String> tarifIngredientNameColumn; // Malzeme Adı sütunu
-    @FXML
-    private TableColumn<Tarif, String> tarifQuantityColumn; // Toplam Miktar sütunu
-    @FXML
-    private TableColumn<Tarif, String> tarifUnitColumn; // Birim sütunu
-    @FXML
-    private TableColumn<Tarif, String> tarifUnitPriceColumn; // Birim Fiyat sütunu
-
-    @FXML
-    private TableView<Malzeme> ingredientsTable; // Malzeme TableView bileşeni
-    @FXML
-    private TableColumn<Malzeme, String> malzemeIngredientNameColumn; // Malzeme adı sütunu
-    @FXML
-    private TableColumn<Malzeme, Integer> malzemeQuantityColumn; // Miktar sütunu
-    @FXML
-    private TableColumn<Malzeme, String> malzemeUnitColumn; // Birim sütunu
-    @FXML
-    private TableColumn<Malzeme, Double> malzemeUnitPriceColumn; // Birim fiyat sütunu
-
-    @FXML
-    protected void onHelloButtonClick() {
-        welcomeText.setText("Welcome to JavaFX Application!");
-    }
+    private Label talimatlarLabel; // Yeni talimatlar etiketi
 
     public void initialize() {
-        tarifIngredientNameColumn.setCellValueFactory(new PropertyValueFactory<>("tarifAdi"));
-        tarifQuantityColumn.setCellValueFactory(new PropertyValueFactory<>("kategori")); // Örnek olarak kategori
-        tarifUnitColumn.setCellValueFactory(new PropertyValueFactory<>("hazirlamaSuresi")); // Hazırlama süresi
-        tarifUnitPriceColumn.setCellValueFactory(new PropertyValueFactory<>("talimatlar")); // Talimatlar
+        tarifAdiColumn.setCellValueFactory(new PropertyValueFactory<>("tarifAdi"));
+        kategoriColumn.setCellValueFactory(new PropertyValueFactory<>("kategori"));
+        hazirlamaSuresiColumn.setCellValueFactory(new PropertyValueFactory<>("hazirlamaSuresi"));
+        maliyetColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(calculateMaliyet(cellData.getValue())).asObject());
 
-        List<Tarif> tarifler = HelloApplication.getTarifler(); // Uygulamadan tarifleri al
-        tarifTableView.getItems().addAll(tarifler); // Tüm tarifleri ekle
+        List<Tarif> tarifler = HelloApplication.getTarifler();
+        tarifTableView.getItems().addAll(tarifler);
 
-        // Malzemeleri tabloya yükle
-        loadMalzemeler();
+        tarifTableView.setRowFactory(tv -> new TableRow<Tarif>() {
+            @Override
+            protected void updateItem(Tarif tarif, boolean empty) {
+                super.updateItem(tarif, empty);
+                if (tarif != null) {
+                    if (isMalzemeYeterli(tarif)) {
+                        setStyle("-fx-background-color: green;");
+                    } else {
+                        setStyle("-fx-background-color: red;");
+                    }
+                } else {
+                    setStyle("");
+                }
+                setOnMouseClicked(event -> {
+                    if (!empty) {
+                        showIngredients(tarif);
+                        showTalimatlar(tarif); // Talimatları göster
+                    }
+                });
+            }
+        });
+
+        // Malzemeler tablosu için kolonları ayarla
+        malzemeIngredientNameColumn.setCellValueFactory(new PropertyValueFactory<>("malzemeAdi"));
+        malzemeQuantityColumn.setCellValueFactory(new PropertyValueFactory<>("kullanilanMiktar"));
+        malzemeUnitColumn.setCellValueFactory(new PropertyValueFactory<>("birim"));
+        malzemeUnitPriceColumn.setCellValueFactory(new PropertyValueFactory<>("birimFiyat"));
     }
 
-    private void loadMalzemeler() {
-        List<Malzeme> malzemeler = HelloApplication.getMalzemeler();
-        ingredientsTable.getItems().addAll(malzemeler); // Malzemeleri tabloya ekleyin
+    private void showIngredients(Tarif tarif) {
+        if (tarif != null) {
+            ingredientsTable.getItems().clear();
+            List<Malzeme> malzemeler = tarif.getMalzemeler();
+            ingredientsTable.getItems().addAll(malzemeler);
+            System.out.println("Malzemeler yüklendi: " + malzemeler.size()); // Debug için
+        }
+    }
 
-        // TableColumn'ların verilerini ayarlayın
-        malzemeIngredientNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMalzemeAdi()));
-        malzemeQuantityColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getMiktar()).asObject());
-        malzemeUnitColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getBirim()));
-        malzemeUnitPriceColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getBirimFiyat()).asObject());
+    private void showTalimatlar(Tarif tarif) {
+        if (tarif != null) {
+            talimatlarLabel.setText(tarif.getTalimatlar());
+        }
+    }
+
+    private double calculateMaliyet(Tarif tarif) {
+        double toplamMaliyet = 0;
+        for (Malzeme malzeme : tarif.getMalzemeler()) {
+            toplamMaliyet += malzeme.getBirimFiyat() * malzeme.getKullanilanMiktar();
+        }
+        return toplamMaliyet;
+    }
+
+    private boolean isMalzemeYeterli(Tarif tarif) {
+        for (Malzeme malzeme : tarif.getMalzemeler()) {
+            if (malzeme.getToplamMiktar() < malzeme.getKullanilanMiktar()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
