@@ -23,6 +23,10 @@ public class Tarif {
         return tarifID;
     }
 
+    public void setTarifID(int tarifID) {
+        this.tarifID = tarifID;
+    }
+
     public String getTarifAdi() {
         return tarifAdi;
     }

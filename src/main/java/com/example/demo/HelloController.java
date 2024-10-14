@@ -1,13 +1,14 @@
 package com.example.demo;
 
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty; // Bu satırı ekliyoruz
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
 
 public class HelloController {
@@ -33,10 +34,7 @@ public class HelloController {
     @FXML
     private TableColumn<Malzeme, Double> malzemeUnitPriceColumn;
     @FXML
-    private TableColumn<Malzeme, String> talimatlarIngredientsColumn; // Yeni talimatlar sütunu
-
-    @FXML
-    private Label talimatlarLabel; // Yeni talimatlar etiketi
+    private Label talimatlarLabel;
 
     public void initialize() {
         tarifAdiColumn.setCellValueFactory(new PropertyValueFactory<>("tarifAdi"));
@@ -63,13 +61,12 @@ public class HelloController {
                 setOnMouseClicked(event -> {
                     if (!empty) {
                         showIngredients(tarif);
-                        showTalimatlar(tarif); // Talimatları göster
+                        showTalimatlar(tarif);
                     }
                 });
             }
         });
 
-        // Malzemeler tablosu için kolonları ayarla
         malzemeIngredientNameColumn.setCellValueFactory(new PropertyValueFactory<>("malzemeAdi"));
         malzemeQuantityColumn.setCellValueFactory(new PropertyValueFactory<>("kullanilanMiktar"));
         malzemeUnitColumn.setCellValueFactory(new PropertyValueFactory<>("birim"));
@@ -81,13 +78,26 @@ public class HelloController {
             ingredientsTable.getItems().clear();
             List<Malzeme> malzemeler = tarif.getMalzemeler();
             ingredientsTable.getItems().addAll(malzemeler);
-            System.out.println("Malzemeler yüklendi: " + malzemeler.size()); // Debug için
         }
     }
 
     private void showTalimatlar(Tarif tarif) {
         if (tarif != null) {
             talimatlarLabel.setText(tarif.getTalimatlar());
+        }
+    }
+
+    @FXML
+    private void showAddRecipe() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("add-recipe.fxml"));
+            Scene scene = new Scene(fxmlLoader.load());
+            Stage stage = new Stage();
+            stage.setTitle("Yeni Tarif Ekle");
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Yeni tarif ekleme ekranı açılırken hata: " + e.getMessage());
         }
     }
 

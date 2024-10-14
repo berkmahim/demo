@@ -22,6 +22,14 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
+    public void showAddRecipe() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("add-recipe.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        Stage stage = new Stage();
+        stage.setTitle("Yeni Tarif Ekle");
+        stage.setScene(scene);
+        stage.show();
+    }
 
     // Tarifler veritabanından alınır
     public static List<Tarif> getTarifler() {
@@ -74,4 +82,7 @@ public class HelloApplication extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+
+
 }
